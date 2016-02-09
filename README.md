@@ -28,7 +28,9 @@ Setup this disk as something that's usable in Kubernetes.
 
 ````
 kubectl create -f resources/postgresql/persistent-volume.yaml
+kubectl get pv
 kubectl create -f resources/postgresql/persistent-volume-claim.yaml
+kubectl get pvc
 ````
 
 ## Containers

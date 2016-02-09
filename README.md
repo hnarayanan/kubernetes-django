@@ -1,6 +1,6 @@
 ## Resources
 
-0. A Kubernetes cluster
+0. A Kubernetes cluster using Google Container Engine (GKE)
 
 ````
 gcloud config set project $GCP_PROJECT
@@ -22,6 +22,11 @@ ssh pg-disk-formatter.$GCP_PROJECT
     exit
 gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
 gcloud compute instances delete pg-disk-formatter
+````
+
+Setup this disk as something that's usable in Kubernetes.
+
+````
 kubectl create -f resources/postgresql/persistent-volume.yaml
 kubectl create -f resources/postgresql/persistent-volume-claim.yaml
 ````
@@ -34,15 +39,27 @@ Build the container:
 
 ````
 cd containers/postgresql
-docker build -t postgresql .
+docker build -t hnarayanan/postgresql:9.5 .
 ````
 
-Test the container:
+"Test" the container:
 
 ````
 docker run --name database -e POSTGRES_DB=app_db -e POSTGRES_PASSWORD=app_db_pw -e POSTGRES_USER=app_db_user -d postgresql
 # docker run -it --link database:postgres --rm postgres sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U app_db_user'
 
+````
+
+Push it to a repository:
+
+For this project, we'll be using [Docker Hub](https://hub.docker.com/)
+to host and deliver our containers. If you're interested in a private
+repository, you need to instead use something like
+https://cloud.google.com/container-registry/.
+
+````
+docker login
+docker push hnarayanan/postgresql:9.5
 ````
 
 2. Django + uWSGI

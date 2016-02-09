@@ -1,5 +1,13 @@
 ## Resources
 
+0. A Kubernetes cluster
+
+````
+gcloud config set project $GCP_PROJECT
+gcloud config set compute/zone us-central1-b
+gcloud container clusters create django-k8s
+````
+
 1. A persistent disk for PostgreSQL
 
 Create a disk and format it (using an instance that's temporarily

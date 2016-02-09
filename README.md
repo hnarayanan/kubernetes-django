@@ -1,3 +1,21 @@
+## Resources
+
+1. A persistent disk for PostgreSQL
+
+Create a disk and format it (using an instance that's temporarily
+created just for this purpose).
+
+````
+gcloud compute disks create pg-data-disk --size 50GB
+gcloud compute instances create pg-disk-formatter
+gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
+ssh pg-disk-formatter.$GCP_PROJECT
+    sudo mkfs.ext4 -F /dev/sdb
+    exit
+gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
+gcloud compute instances delete pg-disk-formatter
+````
+
 ## Containers
 
 1. PostgreSQL

@@ -10,8 +10,8 @@
 
 2. A persistent disk for PostgreSQL
 
-Create a disk and format it (using an instance that's temporarily
-created just for this purpose).
+   Create a disk and format it (using an instance that's temporarily
+   created just for this purpose).
 
    ````
    gcloud compute disks create pg-data-disk --size 50GB

@@ -1,28 +1,28 @@
 ## Resources
 
-0. A Kubernetes cluster using Google Container Engine (GKE)
+1. A Kubernetes cluster using Google Container Engine (GKE)
 
-````
-gcloud config set project $GCP_PROJECT
-gcloud config set compute/zone us-central1-b
-gcloud container clusters create django-k8s
-````
+   ````
+   gcloud config set project $GCP_PROJECT
+   gcloud config set compute/zone us-central1-b
+   gcloud container clusters create django-k8s
+   ````
 
-1. A persistent disk for PostgreSQL
+2. A persistent disk for PostgreSQL
 
 Create a disk and format it (using an instance that's temporarily
 created just for this purpose).
 
-````
-gcloud compute disks create pg-data-disk --size 50GB
-gcloud compute instances create pg-disk-formatter
-gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
-ssh pg-disk-formatter.$GCP_PROJECT
-    sudo mkfs.ext4 -F /dev/sdb
-    exit
-gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
-gcloud compute instances delete pg-disk-formatter
-````
+   ````
+   gcloud compute disks create pg-data-disk --size 50GB
+   gcloud compute instances create pg-disk-formatter
+   gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
+   ssh pg-disk-formatter.$GCP_PROJECT
+       sudo mkfs.ext4 -F /dev/sdb
+       exit
+   gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
+   gcloud compute instances delete pg-disk-formatter
+   ````
 
 Setup this disk as something that's usable in Kubernetes.
 

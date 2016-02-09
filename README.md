@@ -22,6 +22,8 @@ ssh pg-disk-formatter.$GCP_PROJECT
     exit
 gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
 gcloud compute instances delete pg-disk-formatter
+kubectl create -f resources/postgresql/persistent-volume.yaml
+kubectl create -f resources/postgresql/persistent-volume-claim.yaml
 ````
 
 ## Containers

@@ -56,8 +56,8 @@ Push it to a repository:
 
 For this project, we'll be using [Docker Hub](https://hub.docker.com/)
 to host and deliver our containers. If you're interested in a private
-repository, you need to instead use something like
-https://cloud.google.com/container-registry/.
+repository, you need to instead use something like [Google Container
+Registry](https://cloud.google.com/container-registry/).
 
 ````
 docker login
@@ -73,6 +73,13 @@ docker push hnarayanan/postgresql:9.5
 3. NGINX
 
 ## Pods
+
+1. PostgreSQL
+
+````
+kubectl create -f pods/postgresql.yaml
+kubectl get pods
+````
 
 ## Replication Controllers
 

@@ -10,7 +10,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  nfs:
-    gcePersistentDisk:
-      pdName: pg-data-disk
-      fsType: ext4
+  gcePersistentDisk:
+    pdName: pg-data-disk
+    fsType: ext4

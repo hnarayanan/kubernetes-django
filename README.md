@@ -73,16 +73,6 @@ docker push hnarayanan/postgresql:9.5
 
 3. NGINX
 
-## Pods
-
-1. PostgreSQL
-
-````
-kubectl create -f pods/postgresql.yaml
-kubectl get pods
-kubectl stop -f pods/postgresql.yaml
-````
-
 ## Replication Controllers
 
 1. PostgreSQL
@@ -93,7 +83,15 @@ way, we have a service that monitors our database pod and ensures that
 one instance is running even if something weird happens, such as the
 underlying node fails.
 
+1. PostgreSQL
+
 ````
+kubectl create -f replication-controllers/database.yaml
+kubectl get replicationcontrollers
+kubectl get pods
+kubectl stop -f replication-controllers/database.yaml
+kubectl get replicationcontrollers
+kubectl get pods
 ````
 
 ## Services

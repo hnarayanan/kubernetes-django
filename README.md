@@ -28,9 +28,9 @@
    Setup this disk as something that's usable in Kubernetes.
 
    ````
-   kubectl create -f resources/postgresql/persistent-volume.yaml
+   kubectl create -f kubernetes/database/persistent-volume.yaml
    kubectl get pv
-   kubectl create -f resources/postgresql/persistent-volume-claim.yaml
+   kubectl create -f kubernetes/database/persistent-volume-claim.yaml
    kubectl get pvc
    ````
 
@@ -86,11 +86,11 @@ underlying node fails.
 1. PostgreSQL
 
 ````
-kubectl create -f replication-controllers/database.yaml
+kubectl create -f kubernetes/database/replication-controller.yaml
 kubectl get replicationcontrollers
 kubectl get pods
 
-kubectl stop -f replication-controllers/database.yaml
+kubectl stop -f kubernetes/database/replication-controller.yaml
 kubectl get replicationcontrollers
 kubectl get pods
 ````
@@ -98,10 +98,10 @@ kubectl get pods
 ## Services
 
 ````
-kubectl create -f services/database.yaml
+kubectl create -f kubernetes/database/service.yaml
 kubectl get services
-kubectl describe services postgres
+kubectl describe services database
 
-kubectl stop -f services/database.yaml
+kubectl stop -f kubernetes/database/service.yaml
 kubectl get services
 ````

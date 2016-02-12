@@ -17,6 +17,7 @@
    gcloud compute disks create pg-data-disk --size 50GB
    gcloud compute instances create pg-disk-formatter
    gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
+   gcloud compute config-ssh
    ssh pg-disk-formatter.$GCP_PROJECT
        sudo mkfs.ext4 -F /dev/sdb
        exit
@@ -24,14 +25,14 @@
    gcloud compute instances delete pg-disk-formatter
    ````
 
-Setup this disk as something that's usable in Kubernetes.
+   Setup this disk as something that's usable in Kubernetes.
 
-````
-kubectl create -f resources/postgresql/persistent-volume.yaml
-kubectl get pv
-kubectl create -f resources/postgresql/persistent-volume-claim.yaml
-kubectl get pvc
-````
+   ````
+   kubectl create -f resources/postgresql/persistent-volume.yaml
+   kubectl get pv
+   kubectl create -f resources/postgresql/persistent-volume-claim.yaml
+   kubectl get pvc
+   ````
 
 ## Containers
 
@@ -79,8 +80,20 @@ docker push hnarayanan/postgresql:9.5
 ````
 kubectl create -f pods/postgresql.yaml
 kubectl get pods
+kubectl stop -f pods/postgresql.yaml
 ````
 
 ## Replication Controllers
+
+1. PostgreSQL
+
+Even though our application only requires a single PostgreSQL instance
+running, we still run it under a (pod) replication controller. This
+way, we have a service that monitors our database pod and ensures that
+one instance is running even if something weird happens, such as the
+underlying node fails.
+
+````
+````
 
 ## Services

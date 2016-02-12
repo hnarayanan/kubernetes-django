@@ -89,9 +89,19 @@ underlying node fails.
 kubectl create -f replication-controllers/database.yaml
 kubectl get replicationcontrollers
 kubectl get pods
+
 kubectl stop -f replication-controllers/database.yaml
 kubectl get replicationcontrollers
 kubectl get pods
 ````
 
 ## Services
+
+````
+kubectl create -f services/database.yaml
+kubectl get services
+kubectl describe services postgres
+
+kubectl stop -f services/database.yaml
+kubectl get services
+````

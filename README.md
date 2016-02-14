@@ -31,11 +31,23 @@ docker push hnarayanan/postgresql:9.5
 
 2. Django + uWSGI
 
+https://github.com/mbentley/docker-django-uwsgi-nginx/blob/master/Dockerfile
+http://michal.karzynski.pl/blog/2015/04/19/packaging-django-applications-as-docker-container-images/
+
 ````
 # docker run --name some-app --link some-postgres:postgres -d application-that-uses-postgres
 ````
 
 3. NGINX
+
+````
+cd containers/nginx
+docker build -t hnarayanan/nginx:1.9.11 .
+
+(docker run --name nginx -d hnarayanan/nginx:1.9.11)
+docker push hnarayanan/nginx:1.9.11
+
+````
 
 ## Infrastructure setup
 

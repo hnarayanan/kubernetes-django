@@ -117,3 +117,8 @@ kubectl describe services database
 kubectl stop -f kubernetes/database/service.yaml
 kubectl get services
 ````
+
+
+
+docker build -t hnarayanan/djangogirls-app:0.1 .
+docker push hnarayanan/djangogirls-app:0.1

@@ -108,3 +108,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MY_POD_NAME = os.getenv('MY_POD_NAME', 'local')
+MY_POD_NAMESPACE = os.getenv('MY_POD_NAMESPACE', 'local')
+MY_POD_IP = os.getenv('MY_POD_IP', 'localhost')

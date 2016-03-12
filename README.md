@@ -19,7 +19,8 @@ Tutorial](http://tutorial.djangogirls.org).
 Kubernetes](http://kubernetes.io/docs/getting-started-guides/). The
 effort required to do this can be substantial, so one easy way to get
 started is to sign up (for free) on Google Cloud Platform and use a
-managed version of Kubernetes called Google Container Engine (GKE).
+managed version of Kubernetes called [Google Container
+Engine](https://cloud.google.com/container-engine/) (GKE).
 
    ````
    - Set the project
@@ -38,8 +39,8 @@ managed version of Kubernetes called Google Container Engine (GKE).
 4. Setup a persistent store for the database. In this example we're
 going to be using Persistent Disks from Google Cloud Platform.
 
-Create a disk and format it (using an instance that's temporarily
-created just for this purpose).
+   Create a disk and format it (using an instance that's temporarily
+   created just for this purpose).
 
    ````
    gcloud compute disks create pg-data-disk --size 50GB
@@ -105,7 +106,55 @@ Push it to a repository:
 docker push hnarayanan/djangogirls-app:0.1
 ````
 
-## Deploy these to the Kubernetes cluster
+## Deploy these containers to the Kubernetes cluster
+
+### PostgreSQL
+
+Even though our application only requires a single PostgreSQL instance
+running, we still run it under a (pod) replication controller. This
+way, we have a service that monitors our database pod and ensures that
+one instance is running even if something weird happens, such as the
+underlying node fails.
+
+````
+kubectl create -f kubernetes/database/persistent-volume.yaml
+kubectl get pv
+kubectl create -f kubernetes/database/persistent-volume-claim.yaml
+kubectl get pvc
+
+kubectl stop -f kubernetes/database/replication-controller.yaml
+kubectl get replicationcontrollers
+kubectl get pods
+
+kubectl create -f kubernetes/database/service.yaml
+kubectl get services
+kubectl describe services database
+````
+
+### Django app running within Gunicorn
+
+````
+kubectl create -f replication-controller.yaml
+kubectl create -f service.yaml
+````
+## Static Files
+
+````
+gsutil mb gs://django-kubernetes-assets
+gsutil defacl set public-read gs://django-kubernetes-assets
+cd django-k8s/containers/app
+./manage.py collectstatic --noinput
+gsutil -m cp -r static/* gs://django-kubernetes-assets
+````
+
+## Play around with it
+   - scaling
+   - deleting one pod
+   - different versions, split by colour?
+   - monitoring UI
+
+
+## TODO: Unmerged notes
 
 	- Secrets Resource
 		echo mysecretpassword | base64
@@ -124,71 +173,7 @@ docker push hnarayanan/djangogirls-app:0.1
 			docker build -t gcr.io/edgefolio-development/guestbook .
 			gcloud docker push gcr.io/edgefolio-development/guestbook
 		Deploy on k8s
-			kubectl create -f kubernetes_configs/frontend.yaml  
+			kubectl create -f kubernetes_configs/frontend.yaml
 			kubectl get pods
 			kubectl describe pod <pod-id>
 			kubectl logs <pod-id>
-
-4. Demo
-   - scaling
-   - deleting one pod
-   - different versions, split by colour?
-   - monitoring UI
-
-## Infrastructure setup
-
-   Setup this disk as something that's usable in Kubernetes.
-
-   ````
-   kubectl create -f kubernetes/database/persistent-volume.yaml
-   kubectl get pv
-   kubectl create -f kubernetes/database/persistent-volume-claim.yaml
-   kubectl get pvc
-   ````
-
-## Replication Controllers
-
-1. PostgreSQL
-
-Even though our application only requires a single PostgreSQL instance
-running, we still run it under a (pod) replication controller. This
-way, we have a service that monitors our database pod and ensures that
-one instance is running even if something weird happens, such as the
-underlying node fails.
-
-1. PostgreSQL
-
-````
-kubectl create -f kubernetes/database/replication-controller.yaml
-kubectl get replicationcontrollers
-kubectl get pods
-
-kubectl stop -f kubernetes/database/replication-controller.yaml
-kubectl get replicationcontrollers
-kubectl get pods
-````
-
-## Services
-
-````
-kubectl create -f kubernetes/database/service.yaml
-kubectl get services
-kubectl describe services database
-
-kubectl stop -f kubernetes/database/service.yaml
-kubectl get services
-````
-
-## App?
-
-kubectl create -f replication-controller.yaml
-kubectl create -f service.yaml
-
-
-## Static Files
-
-gsutil mb gs://django-kubernetes-assets
-gsutil defacl set public-read gs://django-kubernetes-assets
-cd django-k8s/containers/app
-./manage.py collectstatic --noinput
-gsutil -m cp -r static/* gs://django-kubernetes-assets

@@ -1,4 +1,3 @@
-# vim:set ft=dockerfile:
 FROM debian:jessie
 
 # explicitly set user/group IDs

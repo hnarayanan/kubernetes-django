@@ -1,40 +1,116 @@
 # Scalable and resilient Django with Kubernetes
 
 This repository contains code and notes to get a sample Django
-application working on a Kubernetes cluster running on Google Cloud
-Platform. It is meant to go along with a [blog post describing this in
-some detail](https://harishnarayanan.org/writing/kubernetes-django/).
+application running on a Kubernetes cluster. It is meant to go along
+with a [blog post describing this in some
+detail](https://harishnarayanan.org/writing/kubernetes-django/).
 
-## The steps
+## Preliminary steps
 
 1. [Install Docker](https://docs.docker.com/engine/installation/).
-2. Work through the example Django application covered in the [Django
-Girls Tutorial](http://tutorial.djangogirls.org).
-3. Create a Kubernetes cluster. One easy way to do this is to sign up
-(for free) on Google Cloud Platform and set up a Google Container
-Engine (GKE) cluster.
+
+2. Take a look at and get a feel for the [example
+application](https://github.com/hnarayanan/kubernetes-django/tree/master/containers/app)
+used in this repository. It is a a simple blog application built by
+following the excellent [Django Girls
+Tutorial](http://tutorial.djangogirls.org).
+
+3. [Setup a cluster managed by
+Kubernetes](http://kubernetes.io/docs/getting-started-guides/). The
+effort required to do this can be substantial, so one easy way to get
+started is to sign up (for free) on Google Cloud Platform and use a
+managed version of Kubernetes called Google Container Engine (GKE).
+
    ````
-	- Set the project
-		gcloud config set project django-kubernetes
-	- Setup the cluster
-		gcloud container clusters create demo
-		gcloud container clusters list
-	- Make sure kubectl is configured to see it
-		gcloud container clusters get-credentials demo
-		kubectl get nodes
+   - Set the project
+     gcloud config set project $GCP_PROJECT
+     gcloud config set compute/zone us-central1-b
+
+   - Setup the cluster
+     gcloud container clusters create demo
+     gcloud container clusters list
+
+   - Make sure kubectl is configured to see it
+     gcloud container clusters get-credentials demo
+     kubectl get nodes
    ````
 
-2. Create and publish Docker containers for the components of your application
+4. Setup a persistent store for the database. In this example we're
+going to be using Persistent Disks from Google Cloud Platform.
 
+Create a disk and format it (using an instance that's temporarily
+created just for this purpose).
 
-3. Deploy these to the Kubernetes cluster in stages
+   ````
+   gcloud compute disks create pg-data-disk --size 50GB
+   gcloud compute instances create pg-disk-formatter
+   gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
+   gcloud compute config-ssh
+   ssh pg-disk-formatter.$GCP_PROJECT
+       sudo mkfs.ext4 -F /dev/sdb
+       exit
+   gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
+   gcloud compute instances delete pg-disk-formatter
+   ````
+
+## Create and publish Docker containers
+
+### PostgreSQL
+
+Build the container:
+
+````
+cd containers/postgresql
+docker build -t hnarayanan/postgresql:9.5 .
+````
+
+You can check it out locally if you want:
+
+````
+docker run --name database -e POSTGRES_DB=app_db -e POSTGRES_PASSWORD=app_db_pw -e POSTGRES_USER=app_db_user -d postgresql
+# docker run -it --link database:postgres --rm postgres sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U app_db_user'
+
+````
+
+Push it to a repository:
+
+For this project, we'll be using [Docker Hub](https://hub.docker.com/)
+to host and deliver our containers. If you're interested in a private
+repository, you need to instead use something like [Google Container
+Registry](https://cloud.google.com/container-registry/).
+
+````
+docker login
+docker push hnarayanan/postgresql:9.5
+````
+
+### Django app running within Gunicorn
+
+Build the container:
+
+````
+cd containers/app
+docker build -t hnarayanan/djangogirls-app:0.1 .
+````
+
+You can check it out locally if you want:
+
+````
+# docker run --name some-app --link some-postgres:postgres -d application-that-uses-postgres
+````
+
+Push it to a repository:
+
+````
+docker push hnarayanan/djangogirls-app:0.1
+````
+
+## Deploy these to the Kubernetes cluster
 
 	- Secrets Resource
 		echo mysecretpassword | base64
 		<paste into secrets file>
 		kubectl create -f kubernetes_configs/db_password.yaml
-	- Redis
-		kubectl create -f kubernetes_configs/redis_cluster.yaml
 	- PostgreSQL
 		Disk
 			gcloud compute disks create pg-data  --size 500GB
@@ -59,84 +135,7 @@ Engine (GKE) cluster.
    - different versions, split by colour?
    - monitoring UI
 
-
-## Containers
-
-1. PostgreSQL
-
-Build the container:
-
-````
-cd containers/postgresql
-docker build -t hnarayanan/postgresql:9.5 .
-````
-
-"Test" the container:
-
-````
-docker run --name database -e POSTGRES_DB=app_db -e POSTGRES_PASSWORD=app_db_pw -e POSTGRES_USER=app_db_user -d postgresql
-# docker run -it --link database:postgres --rm postgres sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U app_db_user'
-
-````
-
-Push it to a repository:
-
-For this project, we'll be using [Docker Hub](https://hub.docker.com/)
-to host and deliver our containers. If you're interested in a private
-repository, you need to instead use something like [Google Container
-Registry](https://cloud.google.com/container-registry/).
-
-````
-docker login
-docker push hnarayanan/postgresql:9.5
-````
-
-2. Django + uWSGI
-
-https://github.com/mbentley/docker-django-uwsgi-nginx/blob/master/Dockerfile
-http://michal.karzynski.pl/blog/2015/04/19/packaging-django-applications-as-docker-container-images/
-
-````
-# docker run --name some-app --link some-postgres:postgres -d application-that-uses-postgres
-````
-
-3. NGINX
-
-````
-cd containers/nginx
-docker build -t hnarayanan/nginx:1.9.11 .
-
-(docker run --name nginx -d hnarayanan/nginx:1.9.11)
-docker push hnarayanan/nginx:1.9.11
-
-````
-
 ## Infrastructure setup
-
-1. A Kubernetes cluster using Google Container Engine (GKE)
-
-   ````
-   gcloud config set project $GCP_PROJECT
-   gcloud config set compute/zone us-central1-b
-   gcloud container clusters create django-k8s
-   ````
-
-2. A persistent disk for PostgreSQL
-
-   Create a disk and format it (using an instance that's temporarily
-   created just for this purpose).
-
-   ````
-   gcloud compute disks create pg-data-disk --size 50GB
-   gcloud compute instances create pg-disk-formatter
-   gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
-   gcloud compute config-ssh
-   ssh pg-disk-formatter.$GCP_PROJECT
-       sudo mkfs.ext4 -F /dev/sdb
-       exit
-   gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
-   gcloud compute instances delete pg-disk-formatter
-   ````
 
    Setup this disk as something that's usable in Kubernetes.
 
@@ -180,10 +179,7 @@ kubectl stop -f kubernetes/database/service.yaml
 kubectl get services
 ````
 
-
-
-docker build -t hnarayanan/djangogirls-app:0.1 .
-docker push hnarayanan/djangogirls-app:0.1
+## App?
 
 kubectl create -f replication-controller.yaml
 kubectl create -f service.yaml

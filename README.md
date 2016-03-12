@@ -11,7 +11,7 @@ detail](https://harishnarayanan.org/writing/kubernetes-django/).
 
 2. Take a look at and get a feel for the [example
 application](https://github.com/hnarayanan/kubernetes-django/tree/master/containers/app)
-used in this repository. It is a a simple blog application built by
+used in this repository. It is a simple blog application built by
 following the excellent [Django Girls
 Tutorial](http://tutorial.djangogirls.org).
 
@@ -22,18 +22,24 @@ started is to sign up (for free) on Google Cloud Platform and use a
 managed version of Kubernetes called [Google Container
 Engine](https://cloud.google.com/container-engine/) (GKE).
 
+   First, we set some basic configuration.
+
    ````
-   - Set the project
-     gcloud config set project $GCP_PROJECT
-     gcloud config set compute/zone us-central1-b
+   gcloud config set project $GCP_PROJECT
+   gcloud config set compute/zone us-central1-b
+   ````
 
-   - Setup the cluster
-     gcloud container clusters create demo
-     gcloud container clusters list
+   Then we create the cluster itself.
 
-   - Make sure kubectl is configured to see it
-     gcloud container clusters get-credentials demo
-     kubectl get nodes
+   ````
+   gcloud container clusters create demo
+   gcloud container clusters list
+   ````
+   Finally, we configure `kubectl` to talk to the cluster.
+
+   ````
+   gcloud container clusters get-credentials demo
+   kubectl get nodes
    ````
 
 4. Setup a persistent store for the database. In this example we're

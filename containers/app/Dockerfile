@@ -1,17 +1,23 @@
-FROM python:3.4
+FROM python:3.5.1
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN apt-get -q update && apt-get install -y -q \
+  sqlite3 --no-install-recommends \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ONBUILD COPY requirements.txt /usr/src/app/
-ONBUILD RUN pip install --no-cache-dir -r requirements.txt
+ENV LANG C.UTF-8
 
-ONBUILD COPY . /usr/src/app
+RUN pip install --upgrade pip virtualenv
 
-RUN apt-get update && apt-get install -y \
-		sqlite3 \
-	--no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN virtualenv /venv
+ENV VIRTUAL_ENV /venv
+ENV PATH /venv/bin:$PATH
 
-CMD gunicorn -b :$PORT mysite.wsgi
+RUN mkdir -p /app
+WORKDIR /app
 
-FROM django:onbuild
+ADD requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+ADD . /app
+
+CMD gunicorn -b :8000 mysite.wsgi

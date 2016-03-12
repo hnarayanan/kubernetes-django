@@ -122,3 +122,6 @@ kubectl get services
 
 docker build -t hnarayanan/djangogirls-app:0.1 .
 docker push hnarayanan/djangogirls-app:0.1
+
+kubectl create -f replication-controller.yaml
+kubectl create -f service.yaml

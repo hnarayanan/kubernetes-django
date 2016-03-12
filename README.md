@@ -125,3 +125,12 @@ docker push hnarayanan/djangogirls-app:0.1
 
 kubectl create -f replication-controller.yaml
 kubectl create -f service.yaml
+
+
+## Static Files
+
+gsutil mb gs://django-kubernetes-assets
+gsutil defacl set public-read gs://django-kubernetes-assets
+cd django-k8s/containers/app
+./manage.py collectstatic --noinput
+gsutil -m cp -r static/* gs://django-kubernetes-assets

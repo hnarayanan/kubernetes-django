@@ -1,3 +1,65 @@
+# Scalable and resilient Django with Kubernetes
+
+This repository contains code and notes to get a sample Django
+application working on a Kubernetes cluster running on Google Cloud
+Platform. It is meant to go along with a [blog post describing this in
+some detail](https://harishnarayanan.org/writing/kubernetes-django/).
+
+## The steps
+
+1. [Install Docker](https://docs.docker.com/engine/installation/).
+2. Work through the example Django application covered in the [Django
+Girls Tutorial](http://tutorial.djangogirls.org).
+3. Create a Kubernetes cluster. One easy way to do this is to sign up
+(for free) on Google Cloud Platform and set up a Google Container
+Engine (GKE) cluster.
+   ````
+	- Set the project
+		gcloud config set project django-kubernetes
+	- Setup the cluster
+		gcloud container clusters create demo
+		gcloud container clusters list
+	- Make sure kubectl is configured to see it
+		gcloud container clusters get-credentials demo
+		kubectl get nodes
+   ````
+
+2. Create and publish Docker containers for the components of your application
+
+
+3. Deploy these to the Kubernetes cluster in stages
+
+	- Secrets Resource
+		echo mysecretpassword | base64
+		<paste into secrets file>
+		kubectl create -f kubernetes_configs/db_password.yaml
+	- Redis
+		kubectl create -f kubernetes_configs/redis_cluster.yaml
+	- PostgreSQL
+		Disk
+			gcloud compute disks create pg-data  --size 500GB
+		Build Container (Incorporating secrets?)
+			docker build -t gcr.io/edgefolio-development/postgres-pw .
+			gcloud docker push gcr.io/edgefolio-development/postgres-pw
+		Deploy on k8s
+			kubectl create -f kubernetes_config/postgres.yaml
+	- Frontend
+		Build Docker containers
+			docker build -t gcr.io/edgefolio-development/guestbook .
+			gcloud docker push gcr.io/edgefolio-development/guestbook
+		Deploy on k8s
+			kubectl create -f kubernetes_configs/frontend.yaml  
+			kubectl get pods
+			kubectl describe pod <pod-id>
+			kubectl logs <pod-id>
+
+4. Demo
+   - scaling
+   - deleting one pod
+   - different versions, split by colour?
+   - monitoring UI
+
+
 ## Containers
 
 1. PostgreSQL

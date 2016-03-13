@@ -52,23 +52,22 @@ Engine](https://cloud.google.com/container-engine/) (GKE).
       kubectl get nodes
       ````
 
-4. Setup a persistent store for the database. In this example we're
-going to be using Persistent Disks from Google Cloud Platform.
+4. (WIP!) Setup a persistent store for the database. In this example we're
+going to be using Persistent Disks from Google Cloud Platform. In
+order to make one of these, we create a disk and format it (using an
+instance that's temporarily created just for this purpose).
 
-   Create a disk and format it (using an instance that's temporarily
-   created just for this purpose).
-
-   ````
-   gcloud compute disks create pg-data-disk --size 50GB
-   gcloud compute instances create pg-disk-formatter
-   gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
-   gcloud compute config-ssh
-   ssh pg-disk-formatter.$GCP_PROJECT
-       sudo mkfs.ext4 -F /dev/sdb
-       exit
-   gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
-   gcloud compute instances delete pg-disk-formatter
-   ````
+````
+gcloud compute disks create pg-data-disk --size 50GB
+gcloud compute instances create pg-disk-formatter
+gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
+gcloud compute config-ssh
+ssh pg-disk-formatter.$GCP_PROJECT
+    sudo mkfs.ext4 -F /dev/sdb
+    exit
+gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
+gcloud compute instances delete pg-disk-formatter
+````
 
 ## Create and publish Docker containers
 
@@ -187,9 +186,4 @@ gsutil -m cp -r static/* gs://django-kubernetes-assets
   echo mysecretpassword | base64
   <paste into secrets file>
   kubectl create -f kubernetes_configs/db_password.yaml
-
-- PostgreSQL
-
-  Disk
-  gcloud compute disks create pg-data  --size 500GB
 ````

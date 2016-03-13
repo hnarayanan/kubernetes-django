@@ -67,16 +67,16 @@ going to be using Persistent Disks from Google Cloud Platform.
 Build the container:
 
 ````
-cd containers/postgresql
+cd containers/database
 docker build -t hnarayanan/postgresql:9.5 .
 ````
 
 You can check it out locally if you want:
 
 ````
-docker run --name database -e POSTGRES_DB=app_db -e POSTGRES_PASSWORD=app_db_pw -e POSTGRES_USER=app_db_user -d postgresql
-# docker run -it --link database:postgres --rm postgres sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U app_db_user'
-
+docker run --name database -e POSTGRES_DB=app_db -e POSTGRES_PASSWORD=app_db_pw -e POSTGRES_USER=app_db_user -d hnarayanan/postgresql:9.5
+# Echoes $PROCESS_ID to the screen
+docker exec -i -t $PROCESS_ID bash
 ````
 
 Push it to a repository:

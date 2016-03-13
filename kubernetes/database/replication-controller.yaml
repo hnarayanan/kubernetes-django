@@ -17,16 +17,22 @@ spec:
         - name: postgres
           image: hnarayanan/postgresql:9.5
           env:
-            - name: DB_PASS
-              value: password
+            - name: POSTGRES_DB
+              value: app_db
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+            # TODO: Use Kubernetes Secret objects to hold the following credentials
+            - name: POSTGRES_USER
+              value: app_db_user
+            - name: POSTGRES_PASSWORD
+              value: app_db_pw
           ports:
             - containerPort: 5432
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: pg-data
-      volumes:
-        - name: pg-data
-          persistentVolumeClaim:
-            claimName: pg-data-claim
+      # TODO: User persistent disks, volumes and claims for the following
+      #     volumeMounts:
+      #       - mountPath: /var/lib/postgresql/data
+      #         name: pg-data
+      # volumes:
+      #   - name: pg-data
+      #     persistentVolumeClaim:
+      #       claimName: pg-data-claim

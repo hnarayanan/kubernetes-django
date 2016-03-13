@@ -1,23 +1,23 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: app-maroon
+  name: app-postgres
   labels:
     name: app
 spec:
   replicas: 4
   selector:
     name: app
-    version: maroon
+    database: postgres
   template:
     metadata:
       labels:
         name: app
-        version: maroon
+        database: postgres
     spec:
       containers:
         - name: app
-          image: hnarayanan/djangogirls-app:0.8-maroon
+          image: hnarayanan/djangogirls-app:0.9
           env:
             - name: MY_POD_NAME
               valueFrom:
@@ -31,5 +31,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: DATABASE_NAME
+              value: app_db
+            # TODO: Use Kubernetes Secret objects to hold the following credentials
+            - name: DATABASE_USER
+              value: app_db_user
+            - name: DATABASE_PASSWORD
+              value: app_db_pw
           ports:
             - containerPort: 8000

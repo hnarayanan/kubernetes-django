@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: app-orange
+  name: app-sqlite3
   labels:
     name: app
 spec:
   replicas: 4
   selector:
     name: app
-    version: orange
+    database: sqlite3
   template:
     metadata:
       labels:
         name: app
-        version: orange
+        database: sqlite3
     spec:
       containers:
         - name: app

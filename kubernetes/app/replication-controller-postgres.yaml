@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: hnarayanan/djangogirls-app:1.0
+          image: hnarayanan/djangogirls-app:1.1
           env:
             - name: MY_POD_NAME
               valueFrom:

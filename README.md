@@ -169,8 +169,9 @@ gsutil -m cp -r static/* gs://django-kubernetes-assets
 ## TODO: Unmerged notes
 
 ````
-- Migrations
+- Initial Migration and User Creation
   kubectl exec <some_app_pod> -- python /app/manage.py migrate
+  kubectl exec -it <some_app_pod> -- python /app/manage.py createsuperuser
 
 - Secrets Resource
   echo mysecretpassword | base64

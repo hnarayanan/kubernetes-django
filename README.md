@@ -22,25 +22,35 @@ started is to sign up (for free) on Google Cloud Platform and use a
 managed version of Kubernetes called [Google Container
 Engine](https://cloud.google.com/container-engine/) (GKE).
 
-   First, we set some basic configuration.
+   1. Create an account on Google Cloud Platform and update your
+      billing information.
 
-   ````
-   gcloud config set project $GCP_PROJECT
-   gcloud config set compute/zone us-central1-b
-   ````
+   2. Install the [command line
+      interface](https://cloud.google.com/sdk/).
 
-   Then we create the cluster itself.
+   3. Create a project (that we'll call `$GCP_PROJECT`) using the web
+      interface.
 
-   ````
-   gcloud container clusters create demo
-   gcloud container clusters list
-   ````
-   Finally, we configure `kubectl` to talk to the cluster.
+   4. Now, we're ready to set some basic configuration.
 
-   ````
-   gcloud container clusters get-credentials demo
-   kubectl get nodes
-   ````
+      ````
+      gcloud config set project $GCP_PROJECT
+      gcloud config set compute/zone us-central1-b
+      ````
+
+   5. Then we create the cluster itself.
+
+      ````
+      gcloud container clusters create demo
+      gcloud container clusters list
+      ````
+
+   6. Finally, we configure `kubectl` to talk to the cluster.
+
+      ````
+      gcloud container clusters get-credentials demo
+      kubectl get nodes
+      ````
 
 4. Setup a persistent store for the database. In this example we're
 going to be using Persistent Disks from Google Cloud Platform.

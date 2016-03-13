@@ -128,9 +128,11 @@ kubectl get pv
 kubectl create -f kubernetes/database/persistent-volume-claim.yaml
 kubectl get pvc
 
-kubectl stop -f kubernetes/database/replication-controller.yaml
+kubectl create -f kubernetes/database/replication-controller.yaml
 kubectl get replicationcontrollers
 kubectl get pods
+kubectl describe pod <pod-id>
+kubectl logs <pod-id>
 
 kubectl create -f kubernetes/database/service.yaml
 kubectl get services
@@ -142,6 +144,10 @@ kubectl describe services database
 ````
 kubectl create -f replication-controller.yaml
 kubectl create -f service.yaml
+
+kubectl get pods
+kubectl describe pod <pod-id>
+kubectl logs <pod-id>
 ````
 ## Static Files
 
@@ -162,24 +168,17 @@ gsutil -m cp -r static/* gs://django-kubernetes-assets
 
 ## TODO: Unmerged notes
 
-	- Secrets Resource
-		echo mysecretpassword | base64
-		<paste into secrets file>
-		kubectl create -f kubernetes_configs/db_password.yaml
-	- PostgreSQL
-		Disk
-			gcloud compute disks create pg-data  --size 500GB
-		Build Container (Incorporating secrets?)
-			docker build -t gcr.io/edgefolio-development/postgres-pw .
-			gcloud docker push gcr.io/edgefolio-development/postgres-pw
-		Deploy on k8s
-			kubectl create -f kubernetes_config/postgres.yaml
-	- Frontend
-		Build Docker containers
-			docker build -t gcr.io/edgefolio-development/guestbook .
-			gcloud docker push gcr.io/edgefolio-development/guestbook
-		Deploy on k8s
-			kubectl create -f kubernetes_configs/frontend.yaml
-			kubectl get pods
-			kubectl describe pod <pod-id>
-			kubectl logs <pod-id>
+````
+- Migrations
+  kubectl exec <some_app_pod> -- python /app/manage.py migrate
+
+- Secrets Resource
+  echo mysecretpassword | base64
+  <paste into secrets file>
+  kubectl create -f kubernetes_configs/db_password.yaml
+
+- PostgreSQL
+
+  Disk
+  gcloud compute disks create pg-data  --size 500GB
+````

@@ -1,3 +1,4 @@
 Django==1.9.4
 gunicorn==19.4.5
+psycopg2==2.6.1
 wheel==0.24.0

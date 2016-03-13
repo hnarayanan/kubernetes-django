@@ -71,6 +71,11 @@ gcloud compute instances delete pg-disk-formatter
 
 ## Create and publish Docker containers
 
+For this project, we'll be using [Docker Hub](https://hub.docker.com/)
+to host and deliver our containers. If you're interested in a private
+repository, you need to instead use something like [Google Container
+Registry](https://cloud.google.com/container-registry/).
+
 ### PostgreSQL
 
 Build the container:
@@ -90,11 +95,6 @@ docker exec -i -t $PROCESS_ID bash
 
 Push it to a repository:
 
-For this project, we'll be using [Docker Hub](https://hub.docker.com/)
-to host and deliver our containers. If you're interested in a private
-repository, you need to instead use something like [Google Container
-Registry](https://cloud.google.com/container-registry/).
-
 ````
 docker login
 docker push hnarayanan/postgresql:9.5
@@ -102,11 +102,11 @@ docker push hnarayanan/postgresql:9.5
 
 ### Django app running within Gunicorn
 
-Build the container:
+Build the container (TODO: Split into SQLite3 and PostgreSQL versions):
 
 ````
 cd containers/app
-docker build -t hnarayanan/djangogirls-app:0.1 .
+docker build -t hnarayanan/djangogirls-app:0.8 .
 ````
 
 You can check it out locally if you want:
@@ -118,10 +118,34 @@ You can check it out locally if you want:
 Push it to a repository:
 
 ````
-docker push hnarayanan/djangogirls-app:0.1
+docker push hnarayanan/djangogirls-app:0.8
 ````
 
 ## Deploy these containers to the Kubernetes cluster
+
+### Django app running within Gunicorn (first with SQLite3)
+
+````
+kubectl create -f kubernetes/app/replication-controller-sqlite3.yaml
+kubectl create -f kubernetes/app/service.yaml
+
+kubectl get pods
+kubectl get svc
+
+kubectl scale rc app-sqlite3 --replicas=3
+kubectl get pods
+
+kubectl describe pod <pod-id>
+kubectl logs <pod-id>
+````
+
+You can check resiliency by deleting one or more app pods and see it
+respawn.
+
+````
+kubectl delete pod <pod-id>
+kubectl get pods
+````
 
 ### PostgreSQL
 
@@ -132,11 +156,6 @@ one instance is running even if something weird happens, such as the
 underlying node fails.
 
 ````
-kubectl create -f kubernetes/database/persistent-volume.yaml
-kubectl get pv
-kubectl create -f kubernetes/database/persistent-volume-claim.yaml
-kubectl get pvc
-
 kubectl create -f kubernetes/database/replication-controller.yaml
 kubectl get replicationcontrollers
 kubectl get pods
@@ -148,16 +167,31 @@ kubectl get services
 kubectl describe services database
 ````
 
-### Django app running within Gunicorn
+### Django app running within Gunicorn (now, with PostgreSQL)
 
 ````
-kubectl create -f replication-controller.yaml
-kubectl create -f service.yaml
+kubectl create -f kubernetes/app/replication-controller-postgres.yaml
 
 kubectl get pods
-kubectl describe pod <pod-id>
-kubectl logs <pod-id>
+kubectl get svc
 ````
+
+Setup initial migrations and create an initial user
+````
+kubectl exec <some-app-postgres-pod-id> -- python /app/manage.py migrate
+kubectl exec -it <some-app-postgres-pod-id> -- python /app/manage.py createsuperuser
+````
+
+Scale the PostgreSQL pods to 3 replicas, and remove all SQLite3 pods
+
+````
+kubectl scale rc app-sqlite3 --replicas=0
+kubectl get pods
+
+kubectl scale rc app-postgres --replicas=3
+kubectl get pods
+````
+
 ## Static Files
 
 ````
@@ -168,22 +202,19 @@ cd django-k8s/containers/app
 gsutil -m cp -r static/* gs://django-kubernetes-assets
 ````
 
-## Play around with it
-   - scaling
-   - deleting one pod
-   - different versions, split by colour?
-   - monitoring UI
-
-
 ## TODO: Unmerged notes
 
 ````
-- Initial Migration and User Creation
-  kubectl exec <some_app_pod> -- python /app/manage.py migrate
-  kubectl exec -it <some_app_pod> -- python /app/manage.py createsuperuser
+- Monitoring UI
 
 - Secrets Resource
   echo mysecretpassword | base64
   <paste into secrets file>
   kubectl create -f kubernetes_configs/db_password.yaml
+
+- PostgreSQL Persistent Volume (Claims)
+  kubectl create -f kubernetes/database/persistent-volume.yaml
+  kubectl get pv
+  kubectl create -f kubernetes/database/persistent-volume-claim.yaml
+  kubectl get pvc
 ````

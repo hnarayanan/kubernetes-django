@@ -5,7 +5,7 @@ metadata:
   labels:
     name: app
 spec:
-  replicas: 4
+  replicas: 1
   selector:
     name: app
     database: postgres

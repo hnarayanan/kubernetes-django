@@ -2,40 +2,36 @@
 
 This repository contains code and notes to get a sample Django
 application running on a Kubernetes cluster. It is meant to go along
-with a [blog post describing this in some
-detail](https://harishnarayanan.org/writing/kubernetes-django/).
+with a [related blog post][blog-post] that provides more context and
+explains some of the theory behind the steps that follow.
 
 ## Preliminary steps
 
-1. [Install Docker](https://docs.docker.com/engine/installation/).
+1. [Install Docker][docker-installation].
 
-2. Take a look at and get a feel for the [example
-application](https://github.com/hnarayanan/kubernetes-django/tree/master/containers/app)
-used in this repository. It is a simple blog application built by
-following the excellent [Django Girls
-Tutorial](http://tutorial.djangogirls.org).
+2. Take a look at and get a feel for the [example Django
+application][example-app] used in this repository. It is a simple blog
+that’s built following the excellent [Django Girls
+Tutorial][django-girls-tutorial].
 
-3. [Setup a cluster managed by
-Kubernetes](http://kubernetes.io/docs/getting-started-guides/). The
-effort required to do this can be substantial, so one easy way to get
-started is to sign up (for free) on Google Cloud Platform and use a
-managed version of Kubernetes called [Google Container
-Engine](https://cloud.google.com/container-engine/) (GKE).
+3. [Setup a cluster managed by Kubernetes][kubernetes]. The effort
+required to do this can be substantial, so one easy way to get started
+is to sign up (for free) on Google Cloud Platform and use a managed
+version of Kubernetes called [Google Container Engine][GKE] (GKE).
 
    1. Create an account on Google Cloud Platform and update your
       billing information.
 
-   2. Install the [command line
-      interface](https://cloud.google.com/sdk/).
+   2. Install the [command line interface][gcp-sdk].
 
-   3. Create a project (that we'll call `$GCP_PROJECT`) using the web
-      interface.
+   3. Create a project (that we'll refer to henceforth as
+      `$GCP_PROJECT`) using the web interface.
 
    4. Now, we're ready to set some basic configuration.
 
       ````
       gcloud config set project $GCP_PROJECT
-      gcloud config set compute/zone us-central1-b
+      gcloud config set compute/zone europe-west1-d
       ````
 
    5. Then we create the cluster itself.
@@ -52,29 +48,12 @@ Engine](https://cloud.google.com/container-engine/) (GKE).
       kubectl get nodes
       ````
 
-4. (WIP!) Setup a persistent store for the database. In this example we're
-going to be using Persistent Disks from Google Cloud Platform. In
-order to make one of these, we create a disk and format it (using an
-instance that's temporarily created just for this purpose).
-
-````
-gcloud compute disks create pg-data-disk --size 50GB
-gcloud compute instances create pg-disk-formatter
-gcloud compute instances attach-disk pg-disk-formatter --disk pg-data-disk
-gcloud compute config-ssh
-ssh pg-disk-formatter.$GCP_PROJECT
-    sudo mkfs.ext4 -F /dev/sdb
-    exit
-gcloud compute instances detach-disk pg-disk-formatter --disk pg-data-disk
-gcloud compute instances delete pg-disk-formatter
-````
-
 ## Create and publish Docker containers
 
-For this project, we'll be using [Docker Hub](https://hub.docker.com/)
-to host and deliver our containers. If you're interested in a private
-repository, you need to instead use something like [Google Container
-Registry](https://cloud.google.com/container-registry/).
+For this demo, we'll be using [Docker Hub](https://hub.docker.com/) to
+host and deliver our containers. And since this demo doesn't contain
+any secret information, these containers will be exposed to the
+public.
 
 ### PostgreSQL
 
@@ -102,23 +81,17 @@ docker push hnarayanan/postgresql:9.5
 
 ### Django app running within Gunicorn
 
-Build the container (TODO: Split into SQLite3 and PostgreSQL versions):
+Build the container
 
 ````
 cd containers/app
-docker build -t hnarayanan/djangogirls-app:0.8 .
-````
-
-You can check it out locally if you want:
-
-````
-# docker run --name some-app --link some-postgres:postgres -d application-that-uses-postgres
+docker build -t hnarayanan/djangogirls-app:orange .
 ````
 
 Push it to a repository:
 
 ````
-docker push hnarayanan/djangogirls-app:0.8
+docker push hnarayanan/djangogirls-app:orange
 ````
 
 ## Deploy these containers to the Kubernetes cluster
@@ -218,3 +191,11 @@ gsutil -m cp -r static/* gs://django-kubernetes-assets
   kubectl create -f kubernetes/database/persistent-volume-claim.yaml
   kubectl get pvc
 ````
+
+[blog-post]: https://harishnarayanan.org/writing/kubernetes-django/
+[docker-installation]: https://docs.docker.com/engine/installation/
+[example-app]: https://github.com/hnarayanan/kubernetes-django/tree/master/containers/app
+[django-girls-tutorial]: http://tutorial.djangogirls.org
+[kubernetes]: http://kubernetes.io/docs/getting-started-guides/
+[GKE]: https://cloud.google.com/container-engine/
+[gcp-sdk]: https://cloud.google.com/sdk/

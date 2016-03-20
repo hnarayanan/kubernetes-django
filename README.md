@@ -85,25 +85,18 @@ Build the container:
 
 ````
 cd containers/app
-docker build -t hnarayanan/djangogirls-app:orange .
+docker build -t hnarayanan/djangogirls-app:1.2-orange .
 ````
 
 Push it to a repository:
 
 ````
-docker push hnarayanan/djangogirls-app:orange
+docker push hnarayanan/djangogirls-app:1.2-orange
 ````
 
-----------
-To demonstrate rolling updates later, we make an alternative version
-of this blog that uses a different header colour. For this, we modify
-the source
-
-
-Build
-
-Push
-----------
+TODO: To demonstrate rolling updates later, we make an alternative
+version of this blog that uses a different header colour. For this, we
+modify the source, then we build and we push.
 
 ## Deploy these containers to the Kubernetes cluster
 
@@ -166,7 +159,7 @@ Before we access the website using the external IP presented by
 
    ````
    kubectl exec <some-app-orange-pod-id> -- python /app/manage.py migrate
-   ```
+   ````
 
 2. Create an intial user for the blog:
 
@@ -187,6 +180,10 @@ Before we access the website using the external IP presented by
    gsutil -m cp -r static/* gs://demo-assets
    ````
 
+At this point you should be able to load up the website by visiting
+the external IP for the app service (obtained by running `kubectl get
+svc`) in your browser.
+
 ## Play around to understand Kubernetes' API
 
 Now, suppose your site isn't getting much traffic, you can gracefully
@@ -194,7 +191,7 @@ scale down the number of running pods to 1. (Similarly you can
 increase the number of pods if your traffic is starting to grow!)
 
 ````
-kubectl scale rc app-sqlite3 --replicas=1
+kubectl scale rc app-orange --replicas=1
 kubectl get pods
 ````
 
@@ -206,14 +203,8 @@ kubectl delete pod <pod-id>
 kubectl get pods
 ````
 
-### Django app running within Gunicorn (now, with PostgreSQL)
-
-````
-kubectl create -f kubernetes/app/replication-controller-postgres.yaml
-
-kubectl get pods
-kubectl get svc
-````
+Notice Kubernetes will spin up the appropriate number of pods to match
+the last known state of the replication controller.
 
 Scale the PostgreSQL pods to 3 replicas, and remove all SQLite3 pods
 
@@ -225,22 +216,13 @@ kubectl scale rc app-postgres --replicas=3
 kubectl get pods
 ````
 
-## TODO: Unmerged notes
+## And coming in the future
 
-````
-- Monitoring UI
-
-- Secrets Resource
-  echo mysecretpassword | base64
-  <paste into secrets file>
-  kubectl create -f kubernetes_configs/db_password.yaml
-
-- PostgreSQL Persistent Volume (Claims)
-  kubectl create -f kubernetes/database/persistent-volume.yaml
-  kubectl get pv
-  kubectl create -f kubernetes/database/persistent-volume-claim.yaml
-  kubectl get pvc
-````
+Future iterations of this demo will have additional enhancements, such
+as using a Persistent Volume for PostgreSQL data and learning to use
+Kubernetes' Secrets API to handle secret passwords. Keep an eye on the
+[issues][issues] for this project to find out more. And you're free to
+help out too!
 
 [blog-post]: https://harishnarayanan.org/writing/kubernetes-django/
 [docker-installation]: https://docs.docker.com/engine/installation/
@@ -249,3 +231,4 @@ kubectl get pods
 [kubernetes]: http://kubernetes.io/docs/getting-started-guides/
 [GKE]: https://cloud.google.com/container-engine/
 [gcp-sdk]: https://cloud.google.com/sdk/
+[issues]: https://github.com/hnarayanan/kubernetes-django/issues

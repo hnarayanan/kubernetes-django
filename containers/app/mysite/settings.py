@@ -103,7 +103,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = 'https://storage.googleapis.com/django-kubernetes-assets/'
+STATIC_URL = 'https://storage.googleapis.com/demo-assets/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MY_POD_NAME = os.getenv('MY_POD_NAME', 'local')

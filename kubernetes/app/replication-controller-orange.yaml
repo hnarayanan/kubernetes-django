@@ -1,23 +1,23 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: app-sqlite3
+  name: app-orange
   labels:
     name: app
 spec:
   replicas: 3
   selector:
     name: app
-    database: sqlite3
+    colour: orange
   template:
     metadata:
       labels:
         name: app
-        database: sqlite3
+        colour: orange
     spec:
       containers:
         - name: app
-          image: hnarayanan/djangogirls-app:0.8
+          image: hnarayanan/djangogirls-app:orange
           env:
             - name: MY_POD_NAME
               valueFrom:
@@ -31,5 +31,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: DATABASE_NAME
+              value: app_db
+            - name: DATABASE_USER
+              value: app_db_user
+            - name: DATABASE_PASSWORD
+              value: app_db_pw
           ports:
             - containerPort: 8000

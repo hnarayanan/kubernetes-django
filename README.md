@@ -81,7 +81,7 @@ docker push hnarayanan/postgresql:9.5
 
 ### Django app running within Gunicorn
 
-Build the container
+Build the container:
 
 ````
 cd containers/app
@@ -94,31 +94,18 @@ Push it to a repository:
 docker push hnarayanan/djangogirls-app:orange
 ````
 
+----------
+To demonstrate rolling updates later, we make an alternative version
+of this blog that uses a different header colour. For this, we modify
+the source
+
+
+Build
+
+Push
+----------
+
 ## Deploy these containers to the Kubernetes cluster
-
-### Django app running within Gunicorn (first with SQLite3)
-
-````
-kubectl create -f kubernetes/app/replication-controller-sqlite3.yaml
-kubectl create -f kubernetes/app/service.yaml
-
-kubectl get pods
-kubectl get svc
-
-kubectl scale rc app-sqlite3 --replicas=3
-kubectl get pods
-
-kubectl describe pod <pod-id>
-kubectl logs <pod-id>
-````
-
-You can check resiliency by deleting one or more app pods and see it
-respawn.
-
-````
-kubectl delete pod <pod-id>
-kubectl get pods
-````
 
 ### PostgreSQL
 
@@ -129,15 +116,94 @@ one instance is running even if something weird happens, such as the
 underlying node fails.
 
 ````
-kubectl create -f kubernetes/database/replication-controller.yaml
-kubectl get replicationcontrollers
+cd  kubernetes/database
+kubectl create -f replication-controller.yaml
+
+kubectl get rc
 kubectl get pods
+
 kubectl describe pod <pod-id>
 kubectl logs <pod-id>
+````
 
-kubectl create -f kubernetes/database/service.yaml
-kubectl get services
-kubectl describe services database
+Now we start a service to point to the pod.
+
+````
+cd  kubernetes/database
+kubectl create -f service.yaml
+
+kubectl get svc
+kubectl describe svc database
+````
+
+### The first version of the Django app (orange) Gunicorn
+
+We begin with three app pods (copies of the app container) talking to
+the single database.
+
+````
+cd kubernetes/app
+kubectl create -f replication-controller-orange.yaml
+kubectl get pods
+
+kubectl describe pod <pod-id>
+kubectl logs <pod-id>
+````
+
+Then we start a service to point to the pod. This is a load-balancer
+with an external IP so we can access the site.
+
+````
+cd kubernetes/app
+kubectl create -f service.yaml
+kubectl get svc
+````
+
+Before we access the website using the external IP presented by
+`kubectl get svc`, we need to do a few things:
+
+1. Perform initial migrations:
+
+   ````
+   kubectl exec <some-app-orange-pod-id> -- python /app/manage.py migrate
+   ```
+
+2. Create an intial user for the blog:
+
+   ````
+   kubectl exec -it <some-app-orange-pod-id> -- python /app/manage.py createsuperuser
+   ````
+
+3. Have a CDN host static files since we don't want to use Gunicorn
+   for this. This demo uses Google Cloud storage, but you're free to
+   use whatever you want. Just make sure `STATIC_URL` in
+   `containers/app/mysite/settings.py` reflects where the files are.
+
+   ````
+   gsutil mb gs://demo-assets
+   gsutil defacl set public-read gs://demo-assets
+   cd django-k8s/containers/app
+   ./manage.py collectstatic --noinput
+   gsutil -m cp -r static/* gs://demo-assets
+   ````
+
+## Play around to understand Kubernetes' API
+
+Now, suppose your site isn't getting much traffic, you can gracefully
+scale down the number of running pods to 1. (Similarly you can
+increase the number of pods if your traffic is starting to grow!)
+
+````
+kubectl scale rc app-sqlite3 --replicas=1
+kubectl get pods
+````
+
+You can check resiliency by deleting one or more app pods and see it
+respawn.
+
+````
+kubectl delete pod <pod-id>
+kubectl get pods
 ````
 
 ### Django app running within Gunicorn (now, with PostgreSQL)
@@ -149,12 +215,6 @@ kubectl get pods
 kubectl get svc
 ````
 
-Setup initial migrations and create an initial user
-````
-kubectl exec <some-app-postgres-pod-id> -- python /app/manage.py migrate
-kubectl exec -it <some-app-postgres-pod-id> -- python /app/manage.py createsuperuser
-````
-
 Scale the PostgreSQL pods to 3 replicas, and remove all SQLite3 pods
 
 ````
@@ -163,16 +223,6 @@ kubectl get pods
 
 kubectl scale rc app-postgres --replicas=3
 kubectl get pods
-````
-
-## Static Files
-
-````
-gsutil mb gs://django-kubernetes-assets
-gsutil defacl set public-read gs://django-kubernetes-assets
-cd django-k8s/containers/app
-./manage.py collectstatic --noinput
-gsutil -m cp -r static/* gs://django-kubernetes-assets
 ````
 
 ## TODO: Unmerged notes

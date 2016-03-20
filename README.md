@@ -184,18 +184,25 @@ At this point you should be able to load up the website by visiting
 the external IP for the app service (obtained by running `kubectl get
 svc`) in your browser.
 
+Go to `http://app-service-external-ip/admin/` to login using the
+credentials you setup earlier (while creating a super user), and
+return to the site to add some blog posts. Notice that as you refresh
+the site, the name of the app pod serving the site changes, while the
+content stays the same.
+
 ## Play around to understand Kubernetes' API
 
 Now, suppose your site isn't getting much traffic, you can gracefully
-scale down the number of running pods to 1. (Similarly you can
-increase the number of pods if your traffic is starting to grow!)
+*scale* down the number of running application pods to 1. (Similarly
+you can increase the number of pods if your traffic is starting to
+grow!)
 
 ````
 kubectl scale rc app-orange --replicas=1
 kubectl get pods
 ````
 
-You can check resiliency by deleting one or more app pods and see it
+You can check *resiliency* by deleting one or more app pods and see it
 respawn.
 
 ````
@@ -206,14 +213,32 @@ kubectl get pods
 Notice Kubernetes will spin up the appropriate number of pods to match
 the last known state of the replication controller.
 
-Scale the PostgreSQL pods to 3 replicas, and remove all SQLite3 pods
+Finally, to show how we can migrate from one version of the site to
+the next, we'll move from the existing orange version of the
+application to another version that's maroon.
+
+First we scale down the orange version to just one:
 
 ````
-kubectl scale rc app-sqlite3 --replicas=0
+kubectl scale rc app-orange --replicas=1
 kubectl get pods
+````
 
-kubectl scale rc app-postgres --replicas=3
+Then we spin up some copies of the new maroon version:
+
+````
+cd kubernetes/app
+kubectl create -f replication-controller-orange.yaml
 kubectl get pods
+````
+
+When you're happy that the maroon version is working, you can spin
+down all remaining orange versions, and delete the replication
+controller.
+
+````
+kubectl scale rc app-orange --replicas=0
+kubectl delete rc app-orange
 ````
 
 ## And coming in the future

@@ -50,9 +50,9 @@ version of Kubernetes called [Google Container Engine][GKE] (GKE).
 
 ## Create and publish Docker containers
 
-For this demo, we'll be using [Docker Hub](https://hub.docker.com/) to
-host and deliver our containers. And since this demo doesn't contain
-any secret information, these containers will be exposed to the
+For this example, we'll be using [Docker Hub](https://hub.docker.com/)
+to host and deliver our containers. And since we're not working with
+any sensitive information, we'll expose these containers to the
 public.
 
 ### PostgreSQL
@@ -94,9 +94,25 @@ Push it to a repository:
 docker push hnarayanan/djangogirls-app:1.2-orange
 ````
 
-TODO: To demonstrate rolling updates later, we make an alternative
-version of this blog that uses a different header colour. For this, we
-modify the source, then we build and we push.
+We're going to see how to perform rolling updates later in this
+example. For this, let's create an alternative version of our app that
+simply has a different header colour, build a new container app and
+push that too to the container repository.
+
+````
+cd containers/app
+emacs blog/templates/blog/base.html
+
+# Add the following just before the closing </head> tag
+    <style>
+      .page-header {
+        background-color: #ac4142;
+      }
+    </style>
+
+docker build -t hnarayanan/djangogirls-app:1.2-maroon .
+docker push hnarayanan/djangogirls-app:1.2-maroon
+````
 
 ## Deploy these containers to the Kubernetes cluster
 
@@ -129,10 +145,10 @@ kubectl get svc
 kubectl describe svc database
 ````
 
-### The first version of the Django app (orange) Gunicorn
+### Django app running within Gunicorn
 
-We begin with three app pods (copies of the app container) talking to
-the single database.
+We begin with three app pods (copies of the orange app container)
+talking to the single database.
 
 ````
 cd kubernetes/app
@@ -190,10 +206,10 @@ return to the site to add some blog posts. Notice that as you refresh
 the site, the name of the app pod serving the site changes, while the
 content stays the same.
 
-## Play around to understand Kubernetes' API
+## Play around to get a feeling for Kubernetes' API
 
 Now, suppose your site isn't getting much traffic, you can gracefully
-*scale* down the number of running application pods to 1. (Similarly
+*scale* down the number of running application pods to one. (Similarly
 you can increase the number of pods if your traffic is starting to
 grow!)
 
@@ -228,12 +244,16 @@ Then we spin up some copies of the new maroon version:
 
 ````
 cd kubernetes/app
-kubectl create -f replication-controller-orange.yaml
+kubectl create -f replication-controller-maroon.yaml
 kubectl get pods
 ````
 
+Notice that because the app service is pointing simply to the label
+`name: app`, both the one orange and the three maroon apps respond to
+http requests to the external IP.
+
 When you're happy that the maroon version is working, you can spin
-down all remaining orange versions, and delete the replication
+down all remaining orange versions, and delete its replication
 controller.
 
 ````
@@ -241,13 +261,23 @@ kubectl scale rc app-orange --replicas=0
 kubectl delete rc app-orange
 ````
 
+## Cleaning up
+
+After you're done playing around with this example, remember to
+cleanly discard the compute resources we spun up for it.
+
+````
+gcloud container clusters delete demo
+gsutil -m rm -r gs://demo-assets
+````
+
 ## And coming in the future
 
 Future iterations of this demo will have additional enhancements, such
 as using a Persistent Volume for PostgreSQL data and learning to use
-Kubernetes' Secrets API to handle secret passwords. Keep an eye on the
-[issues][issues] for this project to find out more. And you're free to
-help out too!
+Kubernetes' Secrets API to handle secret passwords. Keep an eye on
+[the issues for this project][issues] to find out more. And you're
+free to help out too!
 
 [blog-post]: https://harishnarayanan.org/writing/kubernetes-django/
 [docker-installation]: https://docs.docker.com/engine/installation/

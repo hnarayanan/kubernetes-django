@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: app-maroon
+  labels:
+    name: app
+spec:
+  replicas: 3
+  selector:
+    name: app
+    colour: maroon
+  template:
+    metadata:
+      labels:
+        name: app
+        colour: maroon
+    spec:
+      containers:
+        - name: app
+          image: hnarayanan/djangogirls-app:1.2-maroon
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: DATABASE_NAME
+              value: app_db
+            - name: DATABASE_USER
+              value: app_db_user
+            - name: DATABASE_PASSWORD
+              value: app_db_pw
+          ports:
+            - containerPort: 8000

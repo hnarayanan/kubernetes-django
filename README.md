@@ -7,17 +7,18 @@ explains some of the theory behind the steps that follow.
 
 ## Preliminary steps
 
-1. [Install Docker][docker-installation].
+1. [Install Docker][docker-install].
 
 2. Take a look at and get a feel for the [example Django
 application][example-app] used in this repository. It is a simple blog
 that’s built following the excellent [Django Girls
 Tutorial][django-girls-tutorial].
 
-3. [Setup a cluster managed by Kubernetes][kubernetes]. The effort
-required to do this can be substantial, so one easy way to get started
-is to sign up (for free) on Google Cloud Platform and use a managed
-version of Kubernetes called [Google Container Engine][GKE] (GKE).
+3. [Setup a cluster managed by Kubernetes][kubernetes-install]. The
+effort required to do this can be substantial, so one easy way to get
+started is to sign up (for free) on Google Cloud Platform and use a
+managed version of Kubernetes called [Google Container Engine][GKE]
+(GKE).
 
    1. Create an account on Google Cloud Platform and update your
       billing information.
@@ -28,21 +29,18 @@ version of Kubernetes called [Google Container Engine][GKE] (GKE).
       `$GCP_PROJECT`) using the web interface.
 
    4. Now, we're ready to set some basic configuration.
-
       ````
       gcloud config set project $GCP_PROJECT
       gcloud config set compute/zone europe-west1-d
       ````
 
    5. Then we create the cluster itself.
-
       ````
       gcloud container clusters create demo
       gcloud container clusters list
       ````
 
    6. Finally, we configure `kubectl` to talk to the cluster.
-
       ````
       gcloud container clusters get-credentials demo
       kubectl get nodes
@@ -57,7 +55,8 @@ public.
 
 ### PostgreSQL
 
-Build the container:
+Build the container, remembering to use your own username on Docker
+Hub instead of `hnarayanan`:
 
 ````
 cd containers/database
@@ -172,22 +171,19 @@ Before we access the website using the external IP presented by
 `kubectl get svc`, we need to do a few things:
 
 1. Perform initial migrations:
-
    ````
    kubectl exec <some-app-orange-pod-id> -- python /app/manage.py migrate
    ````
 
 2. Create an intial user for the blog:
-
    ````
    kubectl exec -it <some-app-orange-pod-id> -- python /app/manage.py createsuperuser
    ````
 
 3. Have a CDN host static files since we don't want to use Gunicorn
-   for this. This demo uses Google Cloud storage, but you're free to
-   use whatever you want. Just make sure `STATIC_URL` in
+   for serving these. This demo uses Google Cloud storage, but you're
+   free to use whatever you want. Just make sure `STATIC_URL` in
    `containers/app/mysite/settings.py` reflects where the files are.
-
    ````
    gsutil mb gs://demo-assets
    gsutil defacl set public-read gs://demo-assets
@@ -210,8 +206,7 @@ content stays the same.
 
 Now, suppose your site isn't getting much traffic, you can gracefully
 *scale* down the number of running application pods to one. (Similarly
-you can increase the number of pods if your traffic is starting to
-grow!)
+you can increase the number of pods if your traffic starts to grow!)
 
 ````
 kubectl scale rc app-orange --replicas=1
@@ -233,7 +228,7 @@ Finally, to show how we can migrate from one version of the site to
 the next, we'll move from the existing orange version of the
 application to another version that's maroon.
 
-First we scale down the orange version to just one:
+First we scale down the orange version to just one copy:
 
 ````
 kubectl scale rc app-orange --replicas=1
@@ -280,10 +275,10 @@ Kubernetes' Secrets API to handle secret passwords. Keep an eye on
 free to help out too!
 
 [blog-post]: https://harishnarayanan.org/writing/kubernetes-django/
-[docker-installation]: https://docs.docker.com/engine/installation/
+[docker-install]: https://docs.docker.com/engine/installation/
+[kubernetes-install]: http://kubernetes.io/docs/getting-started-guides/
 [example-app]: https://github.com/hnarayanan/kubernetes-django/tree/master/containers/app
 [django-girls-tutorial]: http://tutorial.djangogirls.org
-[kubernetes]: http://kubernetes.io/docs/getting-started-guides/
 [GKE]: https://cloud.google.com/container-engine/
 [gcp-sdk]: https://cloud.google.com/sdk/
 [issues]: https://github.com/hnarayanan/kubernetes-django/issues

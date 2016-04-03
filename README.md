@@ -7,14 +7,19 @@ explains some of the theory behind the steps that follow.
 
 ## Preliminary steps
 
-1. [Install Docker][docker-install].
+1. Fetch the source code for this example.
+   ````
+   git clone https://github.com/hnarayanan/kubernetes-django.git
+   ````
 
-2. Take a look at and get a feel for the [example Django
+2. [Install Docker][docker-install].
+
+3. Take a look at and get a feel for the [example Django
 application][example-app] used in this repository. It is a simple blog
 that’s built following the excellent [Django Girls
 Tutorial][django-girls-tutorial].
 
-3. [Setup a cluster managed by Kubernetes][kubernetes-install]. The
+4. [Setup a cluster managed by Kubernetes][kubernetes-install]. The
 effort required to do this can be substantial, so one easy way to get
 started is to sign up (for free) on Google Cloud Platform and use a
 managed version of Kubernetes called [Google Container Engine][GKE]

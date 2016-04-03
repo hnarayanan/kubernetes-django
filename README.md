@@ -187,7 +187,12 @@ Before we access the website using the external IP presented by
    ````
    gsutil mb gs://demo-assets
    gsutil defacl set public-read gs://demo-assets
+
    cd django-k8s/containers/app
+   virtualenv --distribute --no-site-packages venv
+   source venv/bin/activate
+   pip install Django==1.9.5
+   export DATABASE_ENGINE='django.db.backends.sqlite3'
    ./manage.py collectstatic --noinput
    gsutil -m cp -r static/* gs://demo-assets
    ````
